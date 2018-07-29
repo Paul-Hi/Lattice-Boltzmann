@@ -2,7 +2,6 @@
 // Created by paulh on 26.07.2018.
 //
 
-#include <cmath>
 #include "Particle_Grid.h"
 
 Particle_Grid::Particle_Grid(int w, int h, std::array<double, 9> in, int** boundaryList, int numBoundariesInList) {
@@ -38,16 +37,21 @@ void Particle_Grid::collide(double omega) {
         for(unsigned long y = 0; y < height; y++)
         {
             grid[x][y].collide(omega);
-            old_grid[x][y] = grid[x][y];
         }
     }
 }
 
-void Particle_Grid::stream() {
-    for(unsigned long x = 1; x < width - 1; x++)
+void Particle_Grid::stream(int **boundaryCoords, int num) {
+    for(unsigned long x = 0; x < width; x++)
     {
-        for(unsigned long y = 1; y < height - 1; y++)
+        for(unsigned long y = 0; y < height; y++)
         {
+
+            if(x == 0 || x == width - 1 || y == 0 || y == height - 1)
+            {
+                grid[x][y].distributions = init_df;
+                continue;
+            }
             grid[x][y].distributions[0] = old_grid[x + 1][y + 1].distributions[0];
             grid[x][y].distributions[1] = old_grid[x][y + 1].distributions[1];
             grid[x][y].distributions[2] = old_grid[x - 1][y + 1].distributions[2];
@@ -57,7 +61,13 @@ void Particle_Grid::stream() {
             grid[x][y].distributions[7] = old_grid[x][y - 1].distributions[7];
             grid[x][y].distributions[8] = old_grid[x - 1][y - 1].distributions[8];
         }
-
+    }
+    int x_coord, y_coord;
+    for(int i = 0; i < num; i++) {
+        int *x_y = boundaryCoords[i];
+        x_coord = x_y[0];
+        y_coord = x_y[1];
+        grid[x_coord][y_coord].distributions = init_df;
     }
 }
 
@@ -68,9 +78,8 @@ void Particle_Grid::step(double omega) {
         outflow();
         collide(omega);
         placeBoundaries(boundaries, numBoundaries);
-        stream();
+        stream(boundaries, numBoundaries);
     }
-    draw();
 }
 
 void Particle_Grid::draw() {
@@ -83,7 +92,6 @@ void Particle_Grid::draw() {
                 std::cout << "---";
                 continue;
             }
-
             if(x == width - 1)
             {
                 std::cout << "|~~";
@@ -144,9 +152,8 @@ void Particle_Grid::draw() {
         }
         std::cout << std::endl;
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(16));
     //getchar();
-    system("clear");
+    //system("clear");
 }
 
 void Particle_Grid::inflow(std::array<double, 9> init) {
@@ -201,7 +208,13 @@ void Particle_Grid::placeBoundaries(int **coords, int num) {
         if(x_coord + 1 < width && y_coord - 1 > 0)      grid[x_coord][y_coord].distributions[2] = old_grid[x_coord + 1][y_coord - 1].distributions[6];
         if(y_coord - 1 > 0)                             grid[x_coord][y_coord].distributions[1] = old_grid[x_coord][y_coord - 1].distributions[7];
         if(x_coord - 1 > 0 && y_coord > 0)              grid[x_coord][y_coord].distributions[0] = old_grid[x_coord - 1][y_coord - 1].distributions[8];
-        old_grid[x_coord][y_coord] = grid[x_coord][y_coord];
+    }
+
+    for(unsigned long x = 0; x < width; x++)
+    {
+        for(unsigned long y = 0; y < height; y++)
+        {
+            old_grid[x][y] = grid[x][y];
+        }
     }
 }
-
