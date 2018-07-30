@@ -5,25 +5,25 @@
 #include "Window.h"
 
 Window::Window(int w, int h) {
-    width = w;
-    height = h;
+    _width = w;
+    _height = h;
     if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
     {
         std::cout << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
     }
     else
     {
-        window = SDL_CreateWindow("Lattice-Boltzmann", 100, 100, width, height, SDL_WINDOW_SHOWN);
-        if (window == nullptr){
+        _window = SDL_CreateWindow("Lattice-Boltzmann", 100, 100, _width, _height, SDL_WINDOW_SHOWN);
+        if (_window == nullptr){
             std::cout << "SDL Window could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
             SDL_Quit();
         }
         else
         {
-            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-            if (renderer == nullptr){
+            _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            if (_renderer == nullptr){
                 std::cout << "SDL Window could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
-                SDL_DestroyWindow( window );
+                SDL_DestroyWindow(_window);
                 SDL_Quit();
             }
             else
@@ -33,28 +33,28 @@ Window::Window(int w, int h) {
 }
 
 Window::Window(const Window &other) {
-    window = other.window;
-    renderer = other.renderer;
+    _window = other._window;
+    _renderer = other._renderer;
 }
 
 Window &Window::operator=(const Window &other) {
     if(this != &other)
     {
-        window = other.window;
-        renderer = other.renderer;
+        _window = other._window;
+        _renderer = other._renderer;
         return *this;
     }
 }
 
 Window::~Window() {
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(_window);
+    SDL_DestroyRenderer(_renderer);
     SDL_Quit();
 }
 
 void Window::update() {
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
+    while (SDL_PollEvent(&_event)) {
+        switch (_event.type) {
             case SDL_QUIT:
                 quit = true;
                 break;
@@ -70,8 +70,8 @@ void Window::draw(Node **grid, int width, int height, int simulationScale) {
     int c2[3] ={102, 204, 255};
     int c3[3] ={102, 255, 255};
     double color[3];
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0);
+    SDL_RenderClear(_renderer);
     SDL_Rect r;
     for(unsigned long x = 0; x < width; x++)
     {
@@ -94,11 +94,11 @@ void Window::draw(Node **grid, int width, int height, int simulationScale) {
             r.w = simulationScale;
             r.h = simulationScale;
             //draw rectangle scaled by simulationScale
-            SDL_SetRenderDrawColor(renderer,  Uint8(color[0]),  Uint8(color[1]), Uint8(color[2]), 255);
-            SDL_RenderFillRect(renderer, &r);
+            SDL_SetRenderDrawColor(_renderer,  Uint8(color[0]),  Uint8(color[1]), Uint8(color[2]), 255);
+            SDL_RenderFillRect(_renderer, &r);
         }
     }
-    SDL_RenderPresent(renderer);
+    SDL_RenderPresent(_renderer);
 
 }
 
@@ -123,8 +123,8 @@ void Window::interpolate_colors(int *c1, int *c2, int *c3, double *res, double t
 
 void Window::saveBMP(std::string name) {
     const Uint32 format = SDL_PIXELFORMAT_ARGB8888;
-    SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, format);
-    SDL_RenderReadPixels(renderer, NULL, format, surface->pixels, surface->pitch);
+    SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, _width, _height, 32, format);
+    SDL_RenderReadPixels(_renderer, NULL, format, surface->pixels, surface->pitch);
     SDL_SaveBMP(surface, name.c_str());
     SDL_FreeSurface(surface);
 }

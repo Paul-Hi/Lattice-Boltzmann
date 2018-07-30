@@ -35,6 +35,8 @@ public:
     /*! re - distributes the distribution values inside the node
      * Parameters:
      * omega : viscosity parameter
+     * Returns:
+     * success
      */
     void collide(double omega = 1.85f);
     /*! Computes and returns x and y velocities inside node
@@ -51,11 +53,11 @@ private:
      */
     double* computeVelocity();
     //! Propability values for each neighbouring direction equally distributed
-    std::array<double, NUM_DIRECTIONS> distributions_eq;
+    std::array<double, NUM_DIRECTIONS> _distributions_eq;
     //! The x and y velocities inside node
-    double v_x_y[2];
+    double _v_x_y[2];
     //! The density inside node
-    double density;
+    double _density;
     /*! Computes and density inside node
      * Returns:
      * double : the density inside node
@@ -64,7 +66,7 @@ private:
     //! Calculates the equally distributed probability values
     void equilibrium();
     //! Weights for the probability values
-    std::array<double, NUM_DIRECTIONS> weights {1./36, 1./9, 1./36,
+    std::array<double, NUM_DIRECTIONS> _weights {1./36, 1./9, 1./36,
                                                 1./9,  4./9, 1./9,
                                                 1./36, 1./9, 1./36};
 };

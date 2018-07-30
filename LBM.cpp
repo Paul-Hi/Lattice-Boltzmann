@@ -5,25 +5,25 @@
 #include "LBM.h"
 
 LBM::LBM(int w, int h, std::array<double, 9> init, int** boundaries, int numboundaries, int simScale, double o) {
-    width = w;
-    height = h;
-    omega = o;
-    simulationScale = simScale;
-    screen = new Window(w * simulationScale, h * simulationScale);
-    pg = new Particle_Grid(width, height, init, boundaries, numboundaries);
+    _width = w;
+    _height = h;
+    _omega = o;
+    _simulationScale = simScale;
+    screen = new Window(w * _simulationScale, h * _simulationScale);
+    _pg = new Particle_Grid(_width, _height, init, boundaries, numboundaries);
 }
 
 LBM::~LBM() {
     delete(screen);
-    delete(pg);
+    delete(_pg);
 }
 
 bool LBM::start(int frames) {
     while(frames > 0 && !screen->quit)
     {
-        pg->step(omega);
+        _pg->step(_omega);
         screen->update();
-        screen->draw(pg->getGrid(), width, height, simulationScale);
+        screen->draw(_pg->getGrid(), _width, _height, _simulationScale);
         frames--;
     }
     screen->saveBMP("simulation_end.bmp");

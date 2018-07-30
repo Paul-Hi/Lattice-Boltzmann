@@ -31,11 +31,11 @@ public:
     ~LBM();
 private:
     //! Particle Grid for simulation
-    Particle_Grid *pg;
+    Particle_Grid* _pg;
     //! width and height of the Particle Grid == resolution of the simulation || simulationScale -> factor for rendering bigger image
-    int width, height, simulationScale;
+    int _width, _height, _simulationScale;
     //! omega -> viscosity of the fluid
-    double omega;
+    double _omega;
     //! window for simulation
     Window *screen;
 };

@@ -41,13 +41,13 @@ public:
     bool quit;
 private:
     //! window handle
-    SDL_Window* window;
+    SDL_Window* _window;
     //! renderer handle
-    SDL_Renderer *renderer;
+    SDL_Renderer* _renderer;
     //! event for checking input
-    SDL_Event event;
+    SDL_Event _event;
     //! width and height
-    int width, height;
+    int _width, _height;
     /*!
      * interpolate between three colors
      * Parameters:

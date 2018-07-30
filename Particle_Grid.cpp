@@ -5,23 +5,23 @@
 #include "Particle_Grid.h"
 
 Particle_Grid::Particle_Grid(int w, int h, std::array<double, 9> in, int** boundaryList, int numBoundariesInList) {
-    width = w;
-    height = h;
-    init = in;
-    boundaries = boundaryList;
-    numBoundaries = numBoundariesInList;
+    _width = w;
+    _height = h;
+    _init = in;
+    _boundaries = boundaryList;
+    _numBoundaries = numBoundariesInList;
     allocSpace();
-    for(unsigned long x = 0; x < width; x++)
+    for(int x = 0; x < _width; x++)
     {
-        for(unsigned long y = 0; y < height; y++)
+        for(int y = 0; y < _height; y++)
         {
-            if(x == 0 && 0 < y  && y < height - 1)
+            if(x == 0 && 0 < y  && y < _height - 1)
             {
-                grid[x][y] = Node(init);
+                _grid[x][y] = Node(_init);
             }
             else
             {
-                grid[x][y] = Node(init_df);
+                _grid[x][y] = Node(_init_df);
             }
         }
     }
@@ -32,72 +32,71 @@ Particle_Grid::~Particle_Grid() {
 }
 
 void Particle_Grid::collide(double omega) {
-    for(unsigned long x = 0; x < width; x++)
+    //this is 2/3 time of one step need parallel for loop
+    for(int x = 0; x < _width; x++)
     {
-        for(unsigned long y = 0; y < height; y++)
+        for(int y = 0; y < _height; y++)
         {
-            grid[x][y].collide(omega);
+            _grid[x][y].collide(omega);
         }
     }
 }
 
 void Particle_Grid::stream(int **boundaryCoords, int num) {
-    for(unsigned long x = 0; x < width; x++)
+    for(int x = 1; x + 1 < _width; x++)
     {
-        for(unsigned long y = 0; y < height; y++)
+        for(int y = 1; y + 1 < _height; y++)
         {
-
-            if(x == 0 || x == width - 1 || y == 0 || y == height - 1)
-            {
-                grid[x][y].distributions = init_df;
-                continue;
-            }
-            grid[x][y].distributions[0] = old_grid[x + 1][y + 1].distributions[0];
-            grid[x][y].distributions[1] = old_grid[x][y + 1].distributions[1];
-            grid[x][y].distributions[2] = old_grid[x - 1][y + 1].distributions[2];
-            grid[x][y].distributions[3] = old_grid[x + 1][y].distributions[3];
-            grid[x][y].distributions[5] = old_grid[x - 1][y].distributions[5];
-            grid[x][y].distributions[6] = old_grid[x + 1][y - 1].distributions[6];
-            grid[x][y].distributions[7] = old_grid[x][y - 1].distributions[7];
-            grid[x][y].distributions[8] = old_grid[x - 1][y - 1].distributions[8];
+            _grid[x][y].distributions[0] = _old_grid[x + 1][y + 1].distributions[0];
+            _grid[x][y].distributions[1] = _old_grid[x][y + 1].distributions[1];
+            _grid[x][y].distributions[2] = _old_grid[x - 1][y + 1].distributions[2];
+            _grid[x][y].distributions[3] = _old_grid[x + 1][y].distributions[3];
+            _grid[x][y].distributions[5] = _old_grid[x - 1][y].distributions[5];
+            _grid[x][y].distributions[6] = _old_grid[x + 1][y - 1].distributions[6];
+            _grid[x][y].distributions[7] = _old_grid[x][y - 1].distributions[7];
+            _grid[x][y].distributions[8] = _old_grid[x - 1][y - 1].distributions[8];
         }
     }
-    int x_coord, y_coord;
     for(int i = 0; i < num; i++) {
         int *x_y = boundaryCoords[i];
-        x_coord = x_y[0];
-        y_coord = x_y[1];
-        grid[x_coord][y_coord].distributions = init_df;
+        _grid[ x_y[0]][x_y[1]].distributions = _init_df;
     }
 }
 
 void Particle_Grid::step(double omega) {
-    for(int i = 0; i < 1; i++)
+    for(int i = 0; i < 2; i++)
     {
-        inflow(init);
+        begin = clock();
+        inflow(_init);
         outflow();
         collide(omega);
-        placeBoundaries(boundaries, numBoundaries);
-        stream(boundaries, numBoundaries);
+        placeBoundaries(_boundaries, _numBoundaries);
+        for(int x = 0; x < _width; x++)
+        {
+            memcpy(_old_grid[x], _grid[x], sizeof(Node) * _height); // NOLINT
+        }
+        stream(_boundaries, _numBoundaries);
+        end = clock();
+        std::cout << double(end - begin) / CLOCKS_PER_SEC << std::endl;
     }
 }
 
 void Particle_Grid::draw() {
-    for(unsigned long y = 0; y < height; y++)
+    for(unsigned long y = 0; y < _height; y++)
     {
-        for(unsigned long x = 0; x < width; x++)
+        for(unsigned long x = 0; x < _width; x++)
         {
-            if(y == 0 || y == height - 1)
+            if(y == 0 || y == _height - 1)
             {
                 std::cout << "---";
                 continue;
             }
-            if(x == width - 1)
+            if(x == _width - 1)
             {
                 std::cout << "|~~";
                 continue;
             }
-            Node n = grid[x][y];
+            Node n = _grid[x][y];
 
             double* x_y = n.getVelocities();
 
@@ -157,40 +156,40 @@ void Particle_Grid::draw() {
 }
 
 void Particle_Grid::inflow(std::array<double, 9> init) {
-    for(unsigned long y = 1; y < height - 1; y++)
-        grid[0][y] = Node(init);
+    for(unsigned long y = 1; y + 1 < _height; y++)
+        _grid[0][y] = Node(init);
 }
 
 void Particle_Grid::allocSpace()
 {
-    grid = new Node*[width];
-    old_grid = new Node*[width];
-    for (int i = 0; i < width; i++)
+    _grid = new Node*[_width];
+    _old_grid = new Node*[_width];
+    for (int i = 0; i < _width; i++)
     {
-        grid[i] = new Node[height];
+        _grid[i] = new Node[_height];
     }
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < _width; i++)
     {
-        old_grid[i] = new Node[height];
+        _old_grid[i] = new Node[_height];
     }
 }
 
 void Particle_Grid::freeSpace() {
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < _width; i++)
     {
-        delete[] (grid[i]);
+        delete[] (_grid[i]);
     }
-    for (int i = 0; i < width; i++)
+    for (int i = 0; i < _width; i++)
     {
-        delete[] (old_grid[i]);
+        delete[] (_old_grid[i]);
     }
-    delete[] (grid);
-    delete[] (old_grid);
+    delete[] (_grid);
+    delete[] (_old_grid);
 }
 
 void Particle_Grid::outflow() {
-    for(unsigned long y = 1; y < height - 1; y++)
-        grid[width - 2][y] = grid[width - 1][y];
+    for(unsigned long y = 1; y + 1 < _height; y++)
+        _grid[_width - 2][y] = _grid[_width - 1][y];
 }
 
 void Particle_Grid::placeBoundaries(int **coords, int num) {
@@ -200,21 +199,13 @@ void Particle_Grid::placeBoundaries(int **coords, int num) {
         int * x_y = coords[i];
         x_coord = x_y[0];
         y_coord = x_y[1];
-        if(x_coord + 1 < width && y_coord + 1 < height) grid[x_coord][y_coord].distributions[8] = old_grid[x_coord + 1][y_coord + 1].distributions[0];
-        if(y_coord + 1 < height)                        grid[x_coord][y_coord].distributions[7] = old_grid[x_coord][y_coord + 1].distributions[1];
-        if(x_coord - 1 > 0 && y_coord + 1 < height)     grid[x_coord][y_coord].distributions[6] = old_grid[x_coord - 1][y_coord + 1].distributions[2];
-        if(x_coord + 1 < width)                         grid[x_coord][y_coord].distributions[5] = old_grid[x_coord + 1][y_coord].distributions[3];
-        if(x_coord - 1 > 0)                             grid[x_coord][y_coord].distributions[3] = old_grid[x_coord - 1][y_coord].distributions[5];
-        if(x_coord + 1 < width && y_coord - 1 > 0)      grid[x_coord][y_coord].distributions[2] = old_grid[x_coord + 1][y_coord - 1].distributions[6];
-        if(y_coord - 1 > 0)                             grid[x_coord][y_coord].distributions[1] = old_grid[x_coord][y_coord - 1].distributions[7];
-        if(x_coord - 1 > 0 && y_coord > 0)              grid[x_coord][y_coord].distributions[0] = old_grid[x_coord - 1][y_coord - 1].distributions[8];
-    }
-
-    for(unsigned long x = 0; x < width; x++)
-    {
-        for(unsigned long y = 0; y < height; y++)
-        {
-            old_grid[x][y] = grid[x][y];
-        }
+        if(x_coord + 1 < _width && y_coord + 1 < _height) _grid[x_coord][y_coord].distributions[8] = _old_grid[x_coord + 1][y_coord + 1].distributions[0];
+        if(y_coord + 1 < _height)                        _grid[x_coord][y_coord].distributions[7] = _old_grid[x_coord][y_coord + 1].distributions[1];
+        if(x_coord - 1 > 0 && y_coord + 1 < _height)     _grid[x_coord][y_coord].distributions[6] = _old_grid[x_coord - 1][y_coord + 1].distributions[2];
+        if(x_coord + 1 < _width)                         _grid[x_coord][y_coord].distributions[5] = _old_grid[x_coord + 1][y_coord].distributions[3];
+        if(x_coord - 1 > 0)                             _grid[x_coord][y_coord].distributions[3] = _old_grid[x_coord - 1][y_coord].distributions[5];
+        if(x_coord + 1 < _width && y_coord - 1 > 0)      _grid[x_coord][y_coord].distributions[2] = _old_grid[x_coord + 1][y_coord - 1].distributions[6];
+        if(y_coord - 1 > 0)                             _grid[x_coord][y_coord].distributions[1] = _old_grid[x_coord][y_coord - 1].distributions[7];
+        if(x_coord - 1 > 0 && y_coord > 0)              _grid[x_coord][y_coord].distributions[0] = _old_grid[x_coord - 1][y_coord - 1].distributions[8];
     }
 }

@@ -9,6 +9,8 @@
 #include <iostream>
 #include "Node.h"
 #include <cmath>
+#include <cstring>
+#include <ctime>
 
 
 class Particle_Grid {
@@ -56,23 +58,24 @@ public:
     //! Deletes space for the grids
     void freeSpace();
     //! returns the currently calculated grid
-    Node **getGrid() {return grid;};
+    inline Node **getGrid() {return _grid;};
 
 private:
     //! main grid
-    Node** grid;
+    Node** _grid;
     //! second grid for calculations
-    Node** old_grid;
+    Node** _old_grid;
     //! default init values for distribution values
-    std::array<double, 9> init_df {1./36, 1./9, 1./36,
+    std::array<double, 9> _init_df {1./36, 1./9, 1./36,
                                    1./9,  4./9, 1./9,
                                    1./36, 1./9, 1./36};
     //! inflow values
-    std::array<double, 9> init;
+    std::array<double, 9> _init;
     //! width and height -> resolution // numboundaries -> number of boundarie coordinates
-    int width, height, numBoundaries;
+    int _width, _height, _numBoundaries;
     //! boundary list
-    int** boundaries;
+    int** _boundaries;
+    time_t begin, end;
 };
 
 
