@@ -53,6 +53,7 @@ void Node::equilibrium() {
 void Node::collide(double omega) {
     equilibrium();
     int s = distributions.size();
+    #pragma omp simd
     for (int i = 0; i < s; i++)
         distributions[i] = distributions[i] * (1 - omega) + _distributions_eq[i] * omega;
 }

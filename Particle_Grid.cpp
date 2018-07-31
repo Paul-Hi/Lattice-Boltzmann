@@ -66,7 +66,7 @@ void Particle_Grid::stream(int **boundaryCoords, int num) {
 }
 
 void Particle_Grid::step(double omega) {
-    for(int i = 0; i <1; i++)
+    for(int i = 0; i < 2; i++)
     {
         auto begin = std::chrono::high_resolution_clock::now();
         in_and_out_flow();
