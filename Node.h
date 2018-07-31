@@ -66,9 +66,9 @@ private:
     //! Calculates the equally distributed probability values
     void equilibrium();
     //! Weights for the probability values
-    std::array<double, NUM_DIRECTIONS> _weights {1./36, 1./9, 1./36,
+    std::array<double, NUM_DIRECTIONS> _weights = {{1./36, 1./9, 1./36,
                                                 1./9,  4./9, 1./9,
-                                                1./36, 1./9, 1./36};
+                                                1./36, 1./9, 1./36}};
 };
 
 

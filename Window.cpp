@@ -2,6 +2,7 @@
 // Created by paulh on 28.07.2018.
 //
 
+#include <vector>
 #include "Window.h"
 
 Window::Window(int w, int h) {
@@ -20,7 +21,7 @@ Window::Window(int w, int h) {
         }
         else
         {
-            _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+            _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED);
             if (_renderer == nullptr){
                 std::cout << "SDL Window could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
                 SDL_DestroyWindow(_window);
@@ -65,14 +66,16 @@ void Window::update() {
 }
 
 void Window::draw(Node **grid, int width, int height, int simulationScale) {
+    auto begin = std::chrono::high_resolution_clock::now();
     double min = 0., max = 0.;
     int c1[3] ={0, 0, 95};
     int c2[3] ={102, 204, 255};
     int c3[3] ={102, 255, 255};
-    double color[3];
-    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0);
-    SDL_RenderClear(_renderer);
-    SDL_Rect r;
+    //SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0);
+    //SDL_RenderClear(_renderer);
+    _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    std::vector< unsigned char > pixels( width * height * 4, 0 );
+    #pragma omp parallel for
     for(unsigned long x = 0; x < width; x++)
     {
         for(unsigned long y = 0; y < height; y++)
@@ -88,17 +91,22 @@ void Window::draw(Node **grid, int width, int height, int simulationScale) {
             //map from 0 - 0,1 to 0 - 1
             double t = (v * 10);
             //interpolate between colors
+            double color[3];
             interpolate_colors(c1, c2, c3, color, t);
-            r.x = int( x * simulationScale);
-            r.y = int( y * simulationScale);
-            r.w = simulationScale;
-            r.h = simulationScale;
-            //draw rectangle scaled by simulationScale
-            SDL_SetRenderDrawColor(_renderer,  Uint8(color[0]),  Uint8(color[1]), Uint8(color[2]), 255);
-            SDL_RenderFillRect(_renderer, &r);
+            unsigned int offset = 4 * x + y * width * 4;
+            pixels[offset] = static_cast<unsigned char>(color[2]);
+            pixels[offset + 1] = static_cast<unsigned char>(color[1]);
+            pixels[offset + 2] = static_cast<unsigned char>(color[0]);
+            pixels[offset + 3] = SDL_ALPHA_OPAQUE;
         }
     }
+    SDL_UpdateTexture(_texture, nullptr, &pixels[0], width * 4);
+    SDL_RenderCopy(_renderer, _texture, nullptr, nullptr);
     SDL_RenderPresent(_renderer);
+    SDL_DestroyTexture(_texture);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - begin;
+    std::cout << "Draw in: " << elapsed.count() << std::endl;
 
 }
 

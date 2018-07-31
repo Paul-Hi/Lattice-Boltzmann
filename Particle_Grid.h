@@ -10,7 +10,7 @@
 #include "Node.h"
 #include <cmath>
 #include <cstring>
-#include <ctime>
+#include <chrono>
 
 
 class Particle_Grid {
@@ -40,19 +40,14 @@ public:
     /*! Draws the grid in ascii ;)
      */
     void draw();
-    /*! Copys inflow values to the starting column
-     * Parameters:
-     * init :inflow distribution values
-     */
-    void inflow(std::array<double, 9> init);
+    //! Copys inflow values to the starting column and Copys outflow values
+    void in_and_out_flow();
     /*! Places no slip boundaries
      * Parameters:
      * coords : list of boundaries given in x,y coordinates
      * num : number of coordinate entries
      */
     void placeBoundaries(int** coords, int num);
-    //! Copys outflow values
-    void outflow();
     //! Allocates space for the grids
     void allocSpace();
     //! Deletes space for the grids
@@ -66,16 +61,15 @@ private:
     //! second grid for calculations
     Node** _old_grid;
     //! default init values for distribution values
-    std::array<double, 9> _init_df {1./36, 1./9, 1./36,
+    std::array<double, 9> _init_df {{1./36, 1./9, 1./36,
                                    1./9,  4./9, 1./9,
-                                   1./36, 1./9, 1./36};
+                                   1./36, 1./9, 1./36}};
     //! inflow values
     std::array<double, 9> _init;
     //! width and height -> resolution // numboundaries -> number of boundarie coordinates
     int _width, _height, _numBoundaries;
     //! boundary list
     int** _boundaries;
-    time_t begin, end;
 };
 
 

@@ -38,6 +38,7 @@ void Node::equilibrium() {
     double v_y = x_y[1];
     double lastPart = 1.5f * (SQUARE(v_x) + SQUARE(v_y));
 
+
     _distributions_eq[CENTER] = _weights[CENTER]         * _density * (1                                                  - lastPart);
     _distributions_eq[NORTH] = _weights[NORTH]           * _density * (1 + 3 * (-v_y)         + 4.5f * SQUARE(-v_y)       - lastPart);
     _distributions_eq[NORTH_EAST] = _weights[NORTH_EAST] * _density * (1 + 3 * (v_x - v_y)    + 4.5f * SQUARE(v_x - v_y)  - lastPart);

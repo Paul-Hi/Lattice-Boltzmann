@@ -8,6 +8,7 @@
 #include <iostream>
 #include "Node.h"
 #include <cmath>
+#include <chrono>
 
 //! get the minimum of two values
 #define MIN(x, y) (x) > (y) ? (y) : (x)
@@ -46,6 +47,8 @@ private:
     SDL_Renderer* _renderer;
     //! event for checking input
     SDL_Event _event;
+    //! Texture Handle for faster grid drawing
+    SDL_Texture* _texture;
     //! width and height
     int _width, _height;
     /*!

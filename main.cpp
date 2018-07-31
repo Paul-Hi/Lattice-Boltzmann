@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     LBM lbm(width, height, init, boundaries, width * 2 + 600, 4, 1./0.54);
 
-    lbm.start(1000);
+    lbm.start(10000);
 
 
     for (int i = 0; i < width * 2 + 600; i++)
