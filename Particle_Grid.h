@@ -29,9 +29,8 @@ public:
      * omega : viscosity parameter
      */
     void collide(double omega);
-    /*! Propagates the distribution values across neighbouring grid nodes
-     */
-    void stream(int **boundaryCoords, int num);
+    //! Propagates the distribution values across neighbouring grid nodes
+    void stream();
     /*! Does one simulation step
      * Parameters:
      * omega : viscosity parameter
@@ -42,12 +41,8 @@ public:
     void draw();
     //! Copys inflow values to the starting column and Copys outflow values
     void in_and_out_flow();
-    /*! Places no slip boundaries
-     * Parameters:
-     * coords : list of boundaries given in x,y coordinates
-     * num : number of coordinate entries
-     */
-    void placeBoundaries(int** coords, int num);
+    //* Places no slip boundaries
+    void placeBoundaries();
     //! Allocates space for the grids
     void allocSpace();
     //! Deletes space for the grids

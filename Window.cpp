@@ -14,6 +14,7 @@ Window::Window(int w, int h) {
     }
     else
     {
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
         _window = SDL_CreateWindow("Lattice-Boltzmann", 100, 100, _width, _height, SDL_WINDOW_SHOWN);
         if (_window == nullptr){
             std::cout << "SDL Window could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
@@ -38,13 +39,13 @@ Window::Window(const Window &other) {
     _renderer = other._renderer;
 }
 
-Window &Window::operator=(const Window &other) {
+Window& Window::operator=(const Window &other) {
     if(this != &other)
     {
         _window = other._window;
         _renderer = other._renderer;
-        return *this;
     }
+    return *this;
 }
 
 Window::~Window() {
@@ -67,10 +68,9 @@ void Window::update() {
 
 void Window::draw(Node **grid, int width, int height, int simulationScale) {
     auto begin = std::chrono::high_resolution_clock::now();
-    double min = 0., max = 0.;
-    int c1[3] ={0, 0, 95};
-    int c2[3] ={102, 204, 255};
-    int c3[3] ={102, 255, 255};
+    int c1[3] ={25, 0, 0};
+    int c2[3] ={255, 20, 20};
+    int c3[3] ={255, 100, 50};
     //SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0);
     //SDL_RenderClear(_renderer);
     _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
@@ -86,8 +86,6 @@ void Window::draw(Node **grid, int width, int height, int simulationScale) {
             double v_y = x_y[1];
 
             double v = (sqrt(SQUARE(v_x) + SQUARE(v_y)));
-            min = v < min ? v : min;
-            max = v > max ? v : max;
             //map from 0 - 0,1 to 0 - 1
             double t = (v * 10);
             //interpolate between colors

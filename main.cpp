@@ -15,10 +15,12 @@ int main(int argc, char* argv[]) {
 
     int** boundaries;
     boundaries = new int*[width * 2 + 600];
+    #pragma omp parallel for
     for (int i = 0; i < width * 2 + 600; i++)
     {
         boundaries[i] = new int[2];
     }
+    #pragma omp parallel for
     for (int i = 0; i < width; i++)
     {
         boundaries[i][0] = boundaries[i + width][0] = i;
@@ -53,6 +55,7 @@ int main(int argc, char* argv[]) {
     lbm.start(10000);
 
 
+    #pragma omp parallel for
     for (int i = 0; i < width * 2 + 600; i++)
     {
         delete[] (boundaries[i]);

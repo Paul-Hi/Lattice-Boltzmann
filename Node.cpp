@@ -76,6 +76,6 @@ Node& Node::operator=(const Node &other) {
         _v_x_y[0] = other._v_x_y[0];
         _v_x_y[1] = other._v_x_y[1];
         _weights = other._weights;
-        return *this;
     }
+    return *this;
 }

@@ -42,7 +42,7 @@ void Particle_Grid::collide(double omega) {
     }
 }
 
-void Particle_Grid::stream(int **boundaryCoords, int num) {
+void Particle_Grid::stream() {
     #pragma omp parallel for
     for(int x = 1; x < _width - 1; x++)
     {
@@ -59,25 +59,25 @@ void Particle_Grid::stream(int **boundaryCoords, int num) {
         }
     }
     #pragma omp parallel for
-    for(int i = 0; i < num; i++) {
-        int *x_y = boundaryCoords[i];
+    for(int i = 0; i < _numBoundaries; i++) {
+        int *x_y = _boundaries[i];
         _grid[ x_y[0]][x_y[1]].distributions = _init_df;
     }
 }
 
 void Particle_Grid::step(double omega) {
-    for(int i = 0; i < 2; i++)
+    for(int i = 0; i < 1; i++)
     {
         auto begin = std::chrono::high_resolution_clock::now();
         in_and_out_flow();
         collide(omega);
-        placeBoundaries(_boundaries, _numBoundaries);
         #pragma omp parallel for
         for(int x = 0; x < _width; x++)
         {
             memcpy(_old_grid[x], _grid[x], sizeof(Node) * _height); // NOLINT
         }
-        stream(_boundaries, _numBoundaries);
+        placeBoundaries();
+        stream();
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - begin;
         std::cout << "Step in: "<< elapsed.count() << std::endl;
@@ -160,7 +160,7 @@ void Particle_Grid::draw() {
 
 void Particle_Grid::in_and_out_flow() {
     #pragma omp parallel for
-    for(unsigned long y = 1; y < _height - 1; y++)
+    for(int y = 1; y < _height - 1; y++)
     {
         _grid[0][y] = Node(_init);
         _grid[_width - 2][y] = _grid[_width - 1][y];
@@ -171,10 +171,12 @@ void Particle_Grid::allocSpace()
 {
     _grid = new Node*[_width];
     _old_grid = new Node*[_width];
+    #pragma omp parallel for
     for (int i = 0; i < _width; i++)
     {
         _grid[i] = new Node[_height];
     }
+    #pragma omp parallel for
     for (int i = 0; i < _width; i++)
     {
         _old_grid[i] = new Node[_height];
@@ -182,10 +184,12 @@ void Particle_Grid::allocSpace()
 }
 
 void Particle_Grid::freeSpace() {
+    #pragma omp parallel for
     for (int i = 0; i < _width; i++)
     {
         delete[] (_grid[i]);
     }
+    #pragma omp parallel for
     for (int i = 0; i < _width; i++)
     {
         delete[] (_old_grid[i]);
@@ -194,20 +198,20 @@ void Particle_Grid::freeSpace() {
     delete[] (_old_grid);
 }
 
-void Particle_Grid::placeBoundaries(int **coords, int num) {
+void Particle_Grid::placeBoundaries() {
     #pragma omp parallel for
-    for(int i = 0; i < num; i++)
+    for(int i = 0; i < _numBoundaries; i++)
     {
-        int * x_y = coords[i];
+        int * x_y = _boundaries[i];
         int x_coord = x_y[0];
         int y_coord = x_y[1];
-        if(x_coord + 1 < _width && y_coord + 1 < _height) _grid[x_coord][y_coord].distributions[8] = _old_grid[x_coord + 1][y_coord + 1].distributions[0];
-        if(y_coord + 1 < _height)                        _grid[x_coord][y_coord].distributions[7] = _old_grid[x_coord][y_coord + 1].distributions[1];
-        if(x_coord - 1 > 0 && y_coord + 1 < _height)     _grid[x_coord][y_coord].distributions[6] = _old_grid[x_coord - 1][y_coord + 1].distributions[2];
-        if(x_coord + 1 < _width)                         _grid[x_coord][y_coord].distributions[5] = _old_grid[x_coord + 1][y_coord].distributions[3];
-        if(x_coord - 1 > 0)                             _grid[x_coord][y_coord].distributions[3] = _old_grid[x_coord - 1][y_coord].distributions[5];
-        if(x_coord + 1 < _width && y_coord - 1 > 0)      _grid[x_coord][y_coord].distributions[2] = _old_grid[x_coord + 1][y_coord - 1].distributions[6];
-        if(y_coord - 1 > 0)                             _grid[x_coord][y_coord].distributions[1] = _old_grid[x_coord][y_coord - 1].distributions[7];
-        if(x_coord - 1 > 0 && y_coord > 0)              _grid[x_coord][y_coord].distributions[0] = _old_grid[x_coord - 1][y_coord - 1].distributions[8];
+        if(x_coord + 1 < _width && y_coord + 1 < _height) _old_grid[x_coord][y_coord].distributions[8] = _grid[x_coord + 1][y_coord + 1].distributions[0];
+        if(y_coord + 1 < _height)                        _old_grid[x_coord][y_coord].distributions[7] = _grid[x_coord][y_coord + 1].distributions[1];
+        if(x_coord - 1 > 0 && y_coord + 1 < _height)     _old_grid[x_coord][y_coord].distributions[6] = _grid[x_coord - 1][y_coord + 1].distributions[2];
+        if(x_coord + 1 < _width)                         _old_grid[x_coord][y_coord].distributions[5] = _grid[x_coord + 1][y_coord].distributions[3];
+        if(x_coord - 1 > 0)                             _old_grid[x_coord][y_coord].distributions[3] = _grid[x_coord - 1][y_coord].distributions[5];
+        if(x_coord + 1 < _width && y_coord - 1 > 0)      _old_grid[x_coord][y_coord].distributions[2] = _grid[x_coord + 1][y_coord - 1].distributions[6];
+        if(y_coord - 1 > 0)                             _old_grid[x_coord][y_coord].distributions[1] = _grid[x_coord][y_coord - 1].distributions[7];
+        if(x_coord - 1 > 0 && y_coord > 0)              _old_grid[x_coord][y_coord].distributions[0] = _grid[x_coord - 1][y_coord - 1].distributions[8];
     }
 }
