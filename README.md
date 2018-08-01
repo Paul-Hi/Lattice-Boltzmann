@@ -2,11 +2,11 @@
 LBM in C++
 
 Lattice-Boltzmann-Solver in C++ without GPU Acceleration, but with multithreading on CPU.
-Graphical output width [SDL2](https://www.libsdl.org/index.php "SDL2").
+Graphical output with [SDL2](https://www.libsdl.org/index.php "SDL2").
 
 Dependencies:
 
-SDL2
+[SDL2](https://www.libsdl.org/index.php "SDL2")
 Compiler supporting OpenMP
 
 Windows:
